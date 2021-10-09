@@ -20,6 +20,7 @@ SoftwareSerial mySerial(Finger_Rx, Finger_Tx);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 int FingerID = 0;     // The Fingerprint ID from the scanner 
 uint8_t id;
+bool isenroll = true;
 bool lampu_on = true;
 void setup(){
   Serial.begin(115200);
@@ -56,6 +57,7 @@ void setup(){
       server.send(200, "text/html", "MODE ENROLL ON<br><br>"
       "<a type='button' href='/enrollmodeoff'>Enroll Off</a><br><br>"
       "<a type='button' href='/'>Back</a><br>");
+      isenroll = true;
       digitalWrite(LED_BUILTIN, LOW);
 
     
@@ -63,6 +65,7 @@ void setup(){
     server.on("/enrollmodeoff", [](){
       server.send(200, "text/html", "MODE ENROLL OFF<br><br>"
       "<a type='button' href='/'>Back</a>");
+      isenroll = false;
       digitalWrite(LED_BUILTIN, HIGH);
 
 
@@ -91,34 +94,33 @@ uint8_t readnumber(void) {
   return num;
 }
 
-void enrollment()
-{
-  Serial.println("Ready to enroll a fingerprint!");
-  Serial.println("Please type in the ID # (from 1 to 127) you want to save this finger as...");
-  id = readnumber();
-  if (id == 0) {// ID #0 not allowed, try again!
-     return;
-  }
-  Serial.print("Enrolling ID #");
-  Serial.println(id);
 
-  
-}
 
 void scanFinger(){
   getFingerprintID(finger);
 }
 
-bool isenroll = true;
+
+
+
 void loop()                     // run over and over again
 {
-  while(true){
-       if (isenroll == true){
-            enrollment();
+  server.handleClient();
+  while (! getFingerprintEnroll(finger, id) );
+/*   while(true){
+      if (isenroll == true){
+             Serial.println("Ready to enroll a fingerprint!");
+              Serial.println("Please type in the ID # (from 1 to 127) you want to save this finger as...");
+              id = readnumber();
+              if (id == 0) {// ID #0 not allowed, try again!
+                return;
+              }
+              Serial.print("Enrolling ID #");
+              Serial.println(id);
         }else{
           scanFinger();
         }
-  }
+  } */
 
   
 }
